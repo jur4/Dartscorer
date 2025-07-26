@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter create:*)",
+      "Bash(mvn:*)",
+      "Bash(cp:*)",
+      "Bash(copy:*)",
+      "Bash(mv:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter:*)",
+      "Bash(export:*)",
+      "Bash(/mnt/c/Dev/flutter/bin/flutter analyze)",
+      "Bash(/mnt/c/Dev/flutter/bin/flutter doctor)",
+      "Bash(dos2unix:*)",
+      "Bash(sed:*)",
+      "Bash(/mnt/c/Dev/flutter/bin/flutter.bat doctor)",
+      "Bash(cmd.exe:*)",
+      "Bash(./mvnw:*)",
+      "Bash(java:*)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(curl:*)",
+      "Bash(rm:*)",
+      "Bash(mysql:*)",
+      "Bash(ss:*)",
+      "Bash(lsof:*)",
+      "Bash(git init:*)"
+    ],
+    "deny": []
+  }
+}

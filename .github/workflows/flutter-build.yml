@@ -1,0 +1,130 @@
+name: Flutter Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'pubspec.yaml'
+      - 'android/**'
+      - 'ios/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'pubspec.yaml'
+      - 'android/**'
+      - 'ios/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Verify formatting
+      run: dart format --output=none --set-exit-if-changed .
+    
+    - name: Analyze project source
+      run: flutter analyze
+    
+    - name: Run tests
+      run: flutter test --coverage
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      with:
+        file: coverage/lcov.info
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+  build-android:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Update API URLs for production
+      run: |
+        # Update URLs to point to production server
+        find lib/services -name "*.dart" -exec sed -i 's|http://10\.0\.2\.2:8081|http://217.154.69.39:8081|g' {} \;
+        find lib/services -name "*.dart" -exec sed -i 's|http://localhost:8081|http://217.154.69.39:8081|g' {} \;
+    
+    - name: Build APK
+      run: flutter build apk --release
+    
+    - name: Build App Bundle
+      run: flutter build appbundle --release
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dartverein-apk
+        path: build/app/outputs/flutter-apk/app-release.apk
+    
+    - name: Upload App Bundle artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dartverein-aab
+        path: build/app/outputs/bundle/release/app-release.aab
+
+  build-ios:
+    needs: test
+    runs-on: macos-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Update API URLs for production
+      run: |
+        # Update URLs to point to production server
+        find lib/services -name "*.dart" -exec sed -i '' 's|http://10\.0\.2\.2:8081|http://217.154.69.39:8081|g' {} \;
+        find lib/services -name "*.dart" -exec sed -i '' 's|http://localhost:8081|http://217.154.69.39:8081|g' {} \;
+    
+    - name: Build iOS
+      run: |
+        flutter build ios --release --no-codesign
+    
+    - name: Upload iOS build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dartverein-ios
+        path: build/ios/ipa/
